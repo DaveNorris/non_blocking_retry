@@ -30,7 +30,7 @@ object Retryable {
               promise.failure(e)
             }
             case true => {
-              println(s"*** Retrying, thread ID = ${Thread.currentThread.getId}")
+              println(s"*** Retrying, try = $remainingTries thread ID = ${Thread.currentThread.getId}")
               LiteScheduler(delay.toMillis) {
                 loop(remainingTries - 1, promise)
               }

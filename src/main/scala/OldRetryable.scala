@@ -28,7 +28,7 @@ object OldRetryable extends CustomExecutionContext {
             retry
         } recoverWith {
           case _ => {
-            println(s"*** Retrying, thread ID = ${Thread.currentThread.getId}")
+            println(s"*** Retrying, try = $attemptsRemaining thread ID = ${Thread.currentThread.getId}")
             retry
           }
         }

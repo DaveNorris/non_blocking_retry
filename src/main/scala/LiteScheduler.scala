@@ -33,7 +33,6 @@ trait LiteScheduler {
   }
 
   private def init = {
-    println(s"*** LiteScheduler:  init")
     val runnable = new Runnable {
       override def run = service
     }
@@ -50,7 +49,6 @@ trait LiteScheduler {
         assert(lastItem != null)
         val now = new DateTime().getMillis
         if (lastItem.executionTime <= now) {
-          println(s"*** running... count = $count")
           count = count + 1
           lastItem.runBlock
         } else {
