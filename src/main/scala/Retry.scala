@@ -2,20 +2,13 @@ package demo
 
 import java.util.concurrent.Executors
 
-import com.google.common.util.concurrent.ThreadFactoryBuilder
-
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.{ExecutionContext, Future, Promise}
 
 
 object Retryable {
 
-  private val threadFactory =
-    new ThreadFactoryBuilder()
-      .setNameFormat("vivo-stream-notification-bridge-retry-pool")
-      .build()
-
-  private implicit val ec = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(1, threadFactory))
+  private implicit val ec = ExecutionContext.fromExecutor(Executors.newSingleThreadExecutor)
 
   def apply[A](maxTries: Int, delay: FiniteDuration)(block: => Future[A]): Future[A] = {
 

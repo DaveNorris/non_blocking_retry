@@ -14,7 +14,7 @@ object MyApp extends App {
   def failedFunction = Future.failed(new Exception("An error"))
 
   (1 to 3500) foreach { _ =>
-    OldRetryable.withRetries(60, 500.milliseconds) {
+    Retryable(60, 500.milliseconds) {
       failedFunction
     }
   }
