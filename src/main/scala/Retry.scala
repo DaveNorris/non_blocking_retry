@@ -14,22 +14,19 @@ object Retryable {
 
     def loop(remainingTries: Int, promise: Promise[A]): Unit = {
       block map { result =>
+        println(s"*** Succeeded")
         promise.success(result)
       } recover {
-        case e => {
-          remainingTries > 1 match {
-            case false => {
-              println(s"*** Finished retrying, thread ID = ${Thread.currentThread.getId}")
-              promise.failure(e)
+        case e =>
+          if (remainingTries > 1) {
+            println(s"*** Retrying, remainingTries = $remainingTries")
+            LiteScheduler(delay) {
+              loop(remainingTries - 1, promise)
             }
-            case true => {
-              println(s"*** Retrying, try = $remainingTries thread ID = ${Thread.currentThread.getId}")
-              LiteScheduler(delay.toMillis) {
-                loop(remainingTries - 1, promise)
-              }
-            }
+          } else {
+            println(s"*** Failed")
+            promise.failure(e)
           }
-        }
       }
     }
 

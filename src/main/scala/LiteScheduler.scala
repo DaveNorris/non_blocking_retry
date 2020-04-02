@@ -4,6 +4,8 @@ import java.util.concurrent.{ConcurrentSkipListSet, Executors, TimeUnit}
 
 import org.joda.time.DateTime
 
+import scala.concurrent.duration.FiniteDuration
+
 trait LiteScheduler {
 
   protected def resolveTime: DateTime
@@ -11,7 +13,7 @@ trait LiteScheduler {
   private val itemList = new ConcurrentSkipListSet[QueuedItem]
   private val serviceThread = Executors.newScheduledThreadPool(1)
 
-  private class QueuedItem(block: => Unit, val executionTime: Long) extends Comparable[QueuedItem] {
+  protected class QueuedItem(block: => Unit, val executionTime: Long) extends Comparable[QueuedItem] {
     val id = java.util.UUID.randomUUID.toString
 
     def runBlock: Unit = block
@@ -25,11 +27,10 @@ trait LiteScheduler {
     }
   }
 
-  def apply(delay: Long)(block: => Unit) = {
-    val executionTime = resolveTime.getMillis + delay
+  def apply(delay: FiniteDuration)(block: => Unit): Unit = {
+    val executionTime = resolveTime.getMillis + delay.toMillis
     val queuedItem = new QueuedItem(block, executionTime)
-    val added = itemList.add(queuedItem)
-    assert(added)
+    itemList.add(queuedItem)
   }
 
   private def init = {
@@ -39,28 +40,16 @@ trait LiteScheduler {
     serviceThread.scheduleAtFixedRate(runnable, 100, 100, TimeUnit.MILLISECONDS)
   }
 
-  private def service = {
-    var doIt: Boolean = true
-    var count = 0
-
-    while (doIt) {
-      if (!itemList.isEmpty) {
-        val lastItem = itemList.pollFirst
-        assert(lastItem != null)
-        val now = new DateTime().getMillis
-        if (lastItem.executionTime <= now) {
-          count = count + 1
-          lastItem.runBlock
-        } else {
-          val added = itemList.add(lastItem)
-          assert(added)
-          doIt = false
-        }
-      }
-      else
-        doIt = false
+  private def service: Unit =
+    if (!itemList.isEmpty) {
+      val lastItem = itemList.pollFirst
+      val now = new DateTime().getMillis
+      if (lastItem.executionTime <= now) {
+        lastItem.runBlock
+        service
+      } else
+        itemList.add(lastItem)
     }
-  }
 
   init
 }

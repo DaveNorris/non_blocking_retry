@@ -10,7 +10,7 @@ object OldRetryable extends CustomExecutionContext {
 
     def retry =
       if (attemptsRemaining == 0) {
-        println(s"*** Finished retrying, thread ID = ${Thread.currentThread.getId}")
+        println(s"*** Failed")
         Future.successful(false)
       } else {
         Thread.sleep(delay.toMillis)
@@ -23,12 +23,13 @@ object OldRetryable extends CustomExecutionContext {
       case Success(result: Future[Boolean]) =>
         result.flatMap {
           case true =>
+            println(s"*** Succeeded")
             Future.successful(true)
           case false =>
             retry
         } recoverWith {
           case _ => {
-            println(s"*** Retrying, try = $attemptsRemaining thread ID = ${Thread.currentThread.getId}")
+            println(s"*** Retrying, remainingTries = $attemptsRemaining")
             retry
           }
         }
