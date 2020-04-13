@@ -8,6 +8,8 @@ import scala.concurrent.duration.FiniteDuration
 
 trait LiteScheduler {
 
+  protected def period: Long
+
   protected def resolveTime: DateTime
 
   private val itemList = new ConcurrentSkipListSet[QueuedItem]
@@ -37,7 +39,7 @@ trait LiteScheduler {
     val runnable = new Runnable {
       override def run = service
     }
-    serviceThread.scheduleAtFixedRate(runnable, 100, 100, TimeUnit.MILLISECONDS)
+    serviceThread.scheduleAtFixedRate(runnable, 0, period, TimeUnit.MILLISECONDS)
   }
 
   private def service: Unit =
@@ -55,5 +57,7 @@ trait LiteScheduler {
 }
 
 object LiteScheduler extends LiteScheduler {
+  protected def period: Long = 200
+
   protected def resolveTime: DateTime = new DateTime()
 }
