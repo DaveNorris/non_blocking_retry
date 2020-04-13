@@ -23,9 +23,7 @@ trait LiteScheduler {
     override def compareTo(other: QueuedItem): Int = {
       if (this.executionTime > other.executionTime) 1
       else if (this.executionTime < other.executionTime) -1
-      else {
-        if (this.id < other.id) 1 else -1
-      }
+      else if (this.id < other.id) 1 else -1
     }
   }
 
