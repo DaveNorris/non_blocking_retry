@@ -14,7 +14,7 @@ object Retryable {
 
     def loop(remainingTries: Int, promise: Promise[A]): Unit = {
       block map { result =>
-        println(s"*** Succeeded")
+        println(s"*** Succeeded: result = $result")
         promise.success(result)
       } recover {
         case e =>
@@ -30,7 +30,7 @@ object Retryable {
       }
     }
 
-    val promise = Promise[A]()
+    val promise = Promise[A]
     loop(maxTries, promise)
     promise.future
   }

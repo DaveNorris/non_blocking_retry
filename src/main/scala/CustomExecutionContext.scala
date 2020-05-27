@@ -17,5 +17,5 @@ object CustomThreadPool {
       .build()
 
   val pool: ExecutionContext =
-    ExecutionContext.fromExecutor(Executors.newFixedThreadPool(3500, threadFactory))
+    ExecutionContext.fromExecutor(Executors.newFixedThreadPool(1000, threadFactory))
 }

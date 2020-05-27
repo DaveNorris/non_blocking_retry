@@ -1,24 +1,35 @@
 package demo
 
+import org.joda.time.DateTime
 
-import scala.concurrent.Future
-import scala.concurrent.duration._
-import scala.io.StdIn._
+import scala.io.StdIn.readLine
 
+object MyApp extends App with CustomExecutionContext {
 
-object MyApp extends App {
+  println(s"Limit?")
+  val limit = readLine.toInt
 
-  def failedFunction = Future.failed(new Exception("An error"))
+  println(s"loading rules limited to $limit...")
 
-  println(s"Ready?")
-  readLine
+  val startLoad = DateTime.now().getMillis
+  val unfilteredRules = RuleLoader.load(limit)
+  val rules = unfilteredRules.filter(_.isDefined).flatten
+  val stopLoad = DateTime.now().getMillis
 
-  (1 to 3500) foreach { _ =>
-    OldRetryable.withRetries(60, 500.milliseconds) {
-      failedFunction
-    }
-  }
+  println(s"*** finished loading ${rules.size} rule documents in ${stopLoad - startLoad} milliseconds")
 
-  println(s"Done!")
+  val tagging = Tagging("http://www.bbc.co.uk/ontologies/passport/predicate/About",
+    "http://www.bbc.co.uk/things/aaa4bc67-8118-4f94-b91a-007467f685ba#id")
+  val passport = Passport("loc:1234",
+    "en-gb",
+    "http://www.bbc.co.uk/ontologies/passport/home/News",
+    List(tagging),
+    Some("AVAILABLE"))
+
+  val startMatch = DateTime.now().getMillis
+  val matchedRules = RuleMatcher.matchRules(passport, rules)
+  val stopMatch = DateTime.now().getMillis
+
+  println(s"*** finished matching ${matchedRules.size} rule documents in ${stopMatch - startMatch} milliseconds")
 }
 
